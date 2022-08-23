@@ -4,54 +4,76 @@ using SRRSBakery.ViewModels;
 
 namespace SRRSBakery.Controllers
 {
-    public class ShoppingCartController : Controller
+    public class ShoppingCartController: Controller
     {
-        private readonly IitemRepository _ItemRepository  ;
-        private readonly ShoppingCart _shoppingCart;
+        private readonly IitemRepository itemRepository;
+        private readonly ShoppingCart shoppingCart;
 
-        public ShoppingCartController(IitemRepository ItemRepository, ShoppingCart shoppingCart)
+        public ShoppingCartController(IitemRepository itemRepository, ShoppingCart shoppingCart)
         {
-            _ItemRepository = ItemRepository;
-            _shoppingCart = shoppingCart;
+            this.itemRepository = itemRepository;
+            this.shoppingCart = shoppingCart;
         }
 
         public ViewResult Index()
         {
-            var items = _shoppingCart.GetShoppingCartItems();
-            _shoppingCart.ShoppingCartItems = items;
+            var items = shoppingCart.GetShoppingCartItems();
+            shoppingCart.ShoppingCartItems = items;
 
             var shoppingCartViewModel = new ShoppingCartViewModel
             {
-                ShoppingCart = _shoppingCart,
-                ShoppingCartTotal = _shoppingCart.GetShoppingCartTotal()
+                ShoppingCart = shoppingCart,
+                ShoppingCartTotal = shoppingCart.GetShoppingCartTotal()
             };
 
             return View(shoppingCartViewModel);
         }
 
-        public RedirectToActionResult AddToShoppingCart(int pieId)
-        {
-            var selectedPie = _ItemRepository.GetAll.FirstOrDefault(p => p.ItemId == pieId);
 
-            if (selectedPie != null)
+
+
+        public RedirectToActionResult AddToShoppingCart(int itemId)
+        {
+            var selectedItem = itemRepository.GetAll.FirstOrDefault(p => p.ItemId == itemId);
+
+            if (selectedItem != null)
             {
-                _shoppingCart.AddToCart(selectedPie, 1);
+                shoppingCart.AddToCart(selectedItem, 1);
             }
             return RedirectToAction("Index");
         }
 
-        public RedirectToActionResult RemoveFromShoppingCart(int pieId)
+        public RedirectToActionResult RemoveFromShoppingCart(int itemId)
         {
-            // var selectedPie = _pieRepository.AllPies.FirstOrDefault(p => p.PieId == pieId);
-            _shoppingCart.ClearCart();
+            var selectedItem = itemRepository.GetAll.FirstOrDefault(p => p.ItemId == itemId);
 
-            /*  if (selectedPie != null)
-              {
-                  _shoppingCart.RemoveFromCart(selectedPie);
-              }
-            */
+            if (selectedItem != null)
+            {
+                shoppingCart.RemoveFromCart(selectedItem);
+            }
             return RedirectToAction("Index");
         }
+
+        public RedirectToActionResult RemoveItemShoppingCart(int itemId)
+        {
+
+            var selectedItem = itemRepository.GetAll.FirstOrDefault(p => p.ItemId == itemId);
+            if (selectedItem != null)
+            {
+                shoppingCart.RemoveItemFromCart(selectedItem);
+            }
+            return RedirectToAction("Index");
+        }
+
+
+        public RedirectToActionResult ClearCart()
+        {
+            shoppingCart.ClearCart();
+            return RedirectToAction("Index");
+        }
+
+
+
+
     }
 }
-

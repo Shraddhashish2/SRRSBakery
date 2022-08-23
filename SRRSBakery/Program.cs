@@ -19,9 +19,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IitemRepository, ItemRepository>();
 builder.Services.AddScoped <ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ShoppingCart>(sp => ShoppingCart.GetCart(sp));
-builder.Services.AddScoped<IorderRepository, OrderRepository>();
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ShoppingCart>(sp => ShoppingCart.GetCart(sp)); //for shopping cart
+builder.Services.AddHttpContextAccessor();  //session,user for shopping cart
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddSession();
 var app = builder.Build();
 
@@ -35,7 +36,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseSession();
 app.UseRouting();
 app.UseAuthentication(); //for login
 app.UseAuthorization(); 
@@ -43,5 +44,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Category}/{action=ListCategory}/{id?}");
-app.MapRazorPages();
+app.MapRazorPages(); //for login
 app.Run();

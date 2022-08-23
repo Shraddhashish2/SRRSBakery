@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SRRSBakery.Models;
@@ -10,20 +11,28 @@ namespace SRRSBakery.Controllers
     {
         private readonly IitemRepository itemRepository;
         private readonly ICategoryRepository categoryRepository;
-        public ItemController(IitemRepository itemRepository, ICategoryRepository categoryRepository)
+        private readonly IMapper mapper;
+        private readonly IConfiguration configuration;   //Used to Connect API
+        string baseAddress;
+        public ItemController(IitemRepository itemRepository, ICategoryRepository categoryRepository,IMapper mapper, IConfiguration configuration)
         {
             this.itemRepository = itemRepository;
             this.categoryRepository = categoryRepository;
-
+            this.mapper = mapper;
+            this.configuration = configuration;
+            this.baseAddress = configuration.GetValue<string>("BaseAddress");
         }
 
         
-        
-        public IActionResult List(int id)
+        public IActionResult List(int id=0)
         {
             IEnumerable<Item> items;
 
-            if (id > 0)
+            if (id == 1)
+            {
+                items = itemRepository.GetCakes;
+            }
+            else if(id > 0)
             {
                items=itemRepository.GetCategoryById(id);
             }
@@ -33,71 +42,15 @@ namespace SRRSBakery.Controllers
             }
             return View(items);
         }
-        /*public IActionResult ListChips()
-        {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Chips = _itemRepository.GetChips;
-            itemListViewModel.Items = Chips;
-            return View(itemListViewModel);
-        }
-        public IActionResult ListDonuts()
-        {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var donuts = _itemRepository.GetDonuts;
-            itemListViewModel.Items = donuts;
-            return View(itemListViewModel);
-        }
-        public ViewResult Details(int id)
-        {
-            var item = _itemRepository.GetAll.FirstOrDefault(item => item.ItemId == id);
-            return View(item);
+        
 
-        }
-        public IActionResult ListCookies()
+        /*public IActionResult ListCakes()
         {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Item = _itemRepository.GetCookies;
-            itemListViewModel.Items = Item;
-            return View(itemListViewModel);
-
-        }
-        public IActionResult ListPizzas()
-        {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Item = _itemRepository.GetPizza;
-            itemListViewModel.Items = Item;
-            return View(itemListViewModel);
-
-        }
-        public IActionResult ListPanCakes()
-        {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Item = _itemRepository.GetPancakes;
-            itemListViewModel.Items = Item;
-            return View(itemListViewModel);
-
-        }
-
-        public IActionResult ListBread()
-        {
-            ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Item = _itemRepository.GetBreads;
-            itemListViewModel.Items = Item;
-            return View(itemListViewModel);
-
-        }*/
-
-        public IActionResult ListCakes()
-        {
-            /*ItemListViewModel itemListViewModel = new ItemListViewModel();
-            var Item = _itemRepository.GetCakes;
-            itemListViewModel.Items = Item;
-            return View(itemListViewModel);*/
             IEnumerable<Item> items;
             items = itemRepository.GetCakes;
             return View(items);
 
-        }
+        }*/
         public ViewResult Details(int id)
         {
             var item = itemRepository.GetAll.FirstOrDefault(item => item.ItemId == id);
@@ -156,6 +109,32 @@ namespace SRRSBakery.Controllers
         {
             itemRepository.DeleteItem(item);
             return RedirectToAction("List");
+        }
+        public ViewResult Listmini()
+        {
+            var item = itemRepository.GetAll;
+            var itemmini = mapper.Map<IEnumerable<ItemMini>>(item);
+            return View(itemmini);
+        }
+        public IActionResult Search(string searchitem)
+        {
+            var items = itemRepository.GetAll.Where(s => s.Name.ToUpper().Contains(searchitem.ToUpper()));
+            return View(items);
+
+        }
+        public ViewResult OutOfStock()
+        {
+            return View();
+        }
+        //List Of All Items Using API Data
+        [HttpGet]
+        public IActionResult ListAPI()
+        {
+            var item = APIClass.GetAPIData(baseAddress + "GetAllItem");
+            ItemListViewModel itemListViewModel = new ItemListViewModel();
+            itemListViewModel.Items = item.Result;
+            itemListViewModel.CurrentCategory = "All Items Using API";
+            return View(itemListViewModel);
         }
     }
 
